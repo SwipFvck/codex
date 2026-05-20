@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>FVCodex</title>
+
+        <link
+            href="https://fonts.googleapis.com/icon?family=Material+Icons"
+            rel="stylesheet"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/base16/material-darker.min.css"
+        />
+        <link rel="stylesheet" href="code.css" />
+    </head>
+    <body>
+        <div class="grid-bg"></div>
+        <div class="overlay hidden" onclick="closeSidebar()"></div>
+
+        <aside class="sidebar" id="sidebar">
+            <div class="side-head">
+                <div class="brand">
+                    <div class="logo">FV</div>
+                    <h1>FVCODEX<span>.</span></h1>
+                </div>
+                <button onclick="closeSidebar()" class="close-btn">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            <div class="side-menu">
+                <p>NAVIGATION</p>
+                <button class="active" onclick="goHome()">
+                    <span class="material-icons">home</span> Home
+                </button>
+            </div>
+
+            <div class="side-menu">
+                <p>CATEGORIES</p>
+                <button class="cat active" onclick="setCategory('All')">
+                    <span class="material-icons">grid_view</span> All
+                </button>
+                <button class="cat" onclick="setCategory('Tools')">
+                    <span class="material-icons">folder</span> Tools
+                </button>
+                <button class="cat" onclick="setCategory('Ai')">
+                    <span class="material-icons">folder</span> Ai
+                </button>
+                <button class="cat" onclick="setCategory('Canvas')">
+                    <span class="material-icons">folder</span> Canvas
+                </button>
+                <button class="cat" onclick="setCategory('Downloader')">
+                    <span class="material-icons">folder</span> Downloader
+                </button>
+                <button class="cat" onclick="setCategory('Scraper')">
+                    <span class="material-icons">folder</span> Scraper
+                </button>
+                <button class="cat" onclick="setCategory('Anime')">
+                    <span class="material-icons">folder</span> Anime
+                </button>
+                <button class="cat" onclick="setCategory('Utils')">
+                    <span class="material-icons">folder</span> Utils
+                </button>
+            </div>
+
+            <div class="side-menu">
+                <p>ADMIN</p>
+                <button onclick="openLogin()" id="loginBtn">
+                    <span class="material-icons">lock</span> Login
+                </button>
+                <button onclick="logoutAdmin()" id="logoutBtn" class="hidden">
+                    <span class="material-icons">logout</span> Logout
+                </button>
+            </div>
+        </aside>
+
+        <main class="main">
+            <header class="topbar">
+                <button class="menu-btn logo-menu" onclick="openSidebar()">
+  <img src="/icon/garti.png" class="favicon-logo">
+</button>
+                <span>v1.0.0</span>
+            </header>
+
+            <section id="homePage">
+                <div class="hero">
+                    <h2>Explore.</h2>
+                    <p>Code scraper collection website.</p>
+                </div>
+
+                <div class="search-box">
+                    <span class="material-icons">search</span>
+                    <input
+                        id="searchInput"
+                        oninput="renderSnippets()"
+                        placeholder="Search snippets..."
+                    />
+                </div>
+
+                <section class="admin-panel hidden" id="adminPanel">
+                    <h3 id="formTitle">Add Code</h3>
+
+                    <input type="hidden" id="editId" />
+                    <input
+                        id="codeTitle"
+                        placeholder="Nama file, contoh: play.js"
+                    />
+                    <input id="codeAuthor" placeholder="Author" />
+
+                    <select id="codeLang">
+                        <option value="javascript">Javascript</option>
+                        <option value="html">HTML</option>
+                        <option value="css">CSS</option>
+                        <option value="python">Python</option>
+                        <option value="json">JSON</option>
+                        <option value="bash">Shell</option>
+                    </select>
+
+                    <select id="codeCategory">
+                        <option>Tools</option>
+                        <option>Ai</option>
+                        <option>Canvas</option>
+                        <option>Downloader</option>
+                        <option>Scraper</option>
+                        <option>Anime</option>
+                        <option>Utils</option>
+                    </select>
+
+                    <input
+                        id="codePassword"
+                        placeholder="Password snippet optional"
+                    />
+                    <textarea
+                        id="codeContent"
+                        placeholder="Paste code di sini..."
+                    ></textarea>
+
+                    <div class="form-actions">
+                        <button onclick="saveSnippet()">Save</button>
+                        <button onclick="resetForm()" class="gray">
+                            Reset
+                        </button>
+                    </div>
+                </section>
+
+                <section class="snippets">
+                    <p class="label">SNIPPETS</p>
+                    <div id="snippetList"></div>
+                </section>
+            </section>
+
+            <section id="detailPage" class="hidden"></section>
+        </main>
+
+        <div class="modal hidden" id="loginModal">
+            <div class="modal-box">
+                <h3>Admin Login</h3>
+                <input
+                    id="adminPass"
+                    type="password"
+                    placeholder="Password admin"
+                />
+                <div class="form-actions">
+                    <button onclick="loginAdmin()">Login</button>
+                    <button onclick="closeLogin()" class="gray">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal hidden" id="passwordModal">
+            <div class="modal-box password-box">
+                <div class="lock-icon">
+  <img src="/icon/lock.png" class="lock-favicon">
+</div>
+
+                <h3>Protected Snippet</h3>
+                <p>This snippet is password protected.</p>
+
+                <input
+                    type="password"
+                    id="snippetPasswordInput"
+                    placeholder="Enter password..."
+                />
+
+                <div class="form-actions">
+                    <button onclick="submitSnippetPassword()">Unlock</button>
+                    <button class="gray" onclick="closePasswordModal()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+        <script src="code.js"></script>
+    </body>
+</html>
