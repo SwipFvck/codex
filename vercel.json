@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/code",
+      "destination": "/tampilan/code.html"
+    },
+    {
+      "source": "/code/:slug",
+      "destination": "/tampilan/code.html"
+    }
+  ]
+}
