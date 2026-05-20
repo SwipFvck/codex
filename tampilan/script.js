@@ -561,15 +561,7 @@ async function seedData() {
   if (snippets.length) return
 
   await saveSnippets([
-    {
-      id: 1,
-      title: "alkiosku.js",
-      author: "Swiper Fvck",
-      lang: "javascript",
-      category: "Tools",
-      password: "123",
-      content: `console.log("hello world")`
-    }
+    
   ])
 }
 
