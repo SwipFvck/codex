@@ -2,6 +2,7 @@ const ADMIN_PASSWORD = "adinda1991"
 
 let activeCategory = "All"
 let pendingSnippetId = null
+let confirmCallback = null
 
 const homePage = document.getElementById("homePage")
 const detailPage = document.getElementById("detailPage")
@@ -42,7 +43,7 @@ function loginAdmin() {
   const pass = document.getElementById("adminPass").value
 
   if (pass !== ADMIN_PASSWORD) {
-    alert("Wrong password")
+    showToast("Wrong password")
     return
   }
 
@@ -209,7 +210,7 @@ function submitSnippetPassword() {
   if (!item) return
 
   if (input !== item.password) {
-    alert("Wrong password")
+    showToast("Wrong password")
     return
   }
 
@@ -244,7 +245,7 @@ function saveSnippet() {
   const content = document.getElementById("codeContent").value.trim()
 
   if (!title || !content) {
-    alert("Title and code are required fields.")
+    showToast("Title and code are required fields.")
     return
   }
 
@@ -299,11 +300,21 @@ function editSnippet(id) {
 }
 
 function deleteSnippet(id) {
-  if (!confirm("Delete this code?")) return
+  showConfirm(
+  "Delete Code",
+  "Are you sure you want to delete this snippet?",
+  () => {
+    const data = getSnippets()
+      .filter(item => item.id !== id)
 
-  const data = getSnippets().filter(item => item.id !== id)
-  saveSnippets(data)
-  goHome()
+    saveSnippets(data)
+    goHome()
+
+    showToast("Code deleted successfully")
+  }
+)
+
+return
 }
 
 function resetForm() {
@@ -322,7 +333,7 @@ function copyCode(id) {
   if (!item) return
 
   navigator.clipboard.writeText(item.content)
-  alert("Code successfully copied")
+  showToast("Code successfully copied")
 }
 
 function downloadCode(id) {
@@ -414,3 +425,46 @@ async function play(query) {
 seedData()
 checkAdmin()
 renderSnippets()
+
+function showToast(message) {
+  const toast = document.getElementById("toast")
+
+  toast.innerText = message
+  toast.classList.add("show")
+
+  clearTimeout(window.toastTimeout)
+
+  window.toastTimeout = setTimeout(() => {
+    toast.classList.remove("show")
+  }, 2500)
+}
+
+function showConfirm(title, message, callback) {
+  document.getElementById("confirmTitle").innerText = title
+  document.getElementById("confirmMessage").innerText = message
+
+  document
+    .getElementById("confirmModal")
+    .classList.remove("hidden")
+
+  confirmCallback = callback
+}
+
+function closeConfirm() {
+  document
+    .getElementById("confirmModal")
+    .classList.add("hidden")
+
+  confirmCallback = null
+}
+
+document
+  .getElementById("confirmYes")
+  .onclick = () => {
+
+  if (confirmCallback) {
+    confirmCallback()
+  }
+
+  closeConfirm()
+}

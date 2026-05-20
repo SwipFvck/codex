@@ -193,6 +193,23 @@
             </div>
         </div>
 
+<div class="toast" id="toast"></div>
+<div class="modal hidden" id="confirmModal">
+  <div class="modal-box confirm-box">
+    <div class="confirm-icon">
+      <img src="favicon.png">
+    </div>
+
+    <h3 id="confirmTitle">Confirm</h3>
+    <p id="confirmMessage">Are you sure?</p>
+
+    <div class="form-actions">
+      <button id="confirmYes">Yes</button>
+      <button class="gray" onclick="closeConfirm()">Cancel</button>
+    </div>
+  </div>
+</div>
+
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
         <script src="script.js"></script>
     </body>
