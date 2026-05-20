@@ -512,7 +512,7 @@ function resetForm() {
 
   document.getElementById("codeLang").value = "javascript"
 
-  document.getElementById("codeCategory").value = "Tools"
+  document.getElementById("codeCategory").value = "All"
 
   document.getElementById("codePassword").value = ""
 
