@@ -35,6 +35,29 @@ async function saveSnippets(data) {
   snippetsCache = data
 }
 
+async function openFromUrl() {
+  const path = window.location.pathname
+
+  if (!path.startsWith("/code/")) return
+
+  const slug = path.split("/code/")[1]
+  if (!slug) return
+
+  const snippets = await getSnippets()
+
+  const item = snippets.find(x =>
+    slugify(x.title) === slug ||
+    slugify(x.title.replace(/\.[a-z0-9]+$/i, "")) === slug
+  )
+
+  if (!item) {
+    showToast("Snippet not found")
+    return
+  }
+
+  await openDetail(item.id, false)
+}
+
 function isAdmin() {
   return sessionStorage.getItem("admin_login") === "true"
 }
@@ -616,4 +639,6 @@ document
   checkAdmin()
 
   await renderSnippets()
+
+  await openFromUrl()
 })()
