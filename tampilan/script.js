@@ -584,10 +584,6 @@ async function seedData() {
   if (snippets.length) return
 
   await saveSnippets([
-<<<<<<< HEAD
-    
-=======
->>>>>>> de55358 (kmjjhhtllndjdata)
   ])
 }
 
