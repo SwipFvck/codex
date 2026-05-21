@@ -186,7 +186,7 @@ async function renderSnippets() {
 
           ${item.password ? `
             <span class="locked">
-              <img src="/icon/lock.png">
+              <img src="/tampilan/icon/lock.png">
             </span>
           ` : ""}
         </div>
