@@ -468,7 +468,7 @@ async function editSnippet(id) {
 
   document.getElementById("editId").value = item.id
   document.getElementById("codeTitle").value = item.title
-  document.getElementById("codeAuthor").value = item.author || ""
+  document.getElementById("codeAuthor").value = item.author || "Swiper Fvck"
   document.getElementById("codeLang").value = item.lang
   document.getElementById("codeCategory").value = item.category
   document.getElementById("codePassword").value = item.password || ""
@@ -508,7 +508,7 @@ function resetForm() {
 
   document.getElementById("codeTitle").value = ""
 
-  document.getElementById("codeAuthor").value = ""
+  document.getElementById("codeAuthor").value = "Swiper Fvck"
 
   document.getElementById("codeLang").value = "javascript"
 
