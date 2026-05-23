@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/snippets",
+      "destination": "/api/snippets.js"
+    },
+    {
       "source": "/",
       "destination": "/tampilan/index.html"
     },
