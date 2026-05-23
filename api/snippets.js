@@ -41,28 +41,26 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === "GET") {
-    try {
-      const files = await imagekit.listFiles({
-        path: "/snippetra"
-      })
+  try {
 
-      const file = files.find(v => v.name === JSON_FILE)
+    const url = `${process.env.IMAGEKIT_URL}/snippetra/snippets.json`
 
-      if (!file) {
-        return res.status(200).json([])
-      }
+    const response = await fetch(url)
 
-      const data = await fetch(file.url)
-        .then(r => r.json())
-
-      return res.status(200).json(data)
-
-    } catch (e) {
-      return res.status(500).json({
-        error: e.message
-      })
+    if (!response.ok) {
+      return res.status(200).json([])
     }
+
+    const data = await response.json()
+
+    return res.status(200).json(data)
+
+  } catch (e) {
+    return res.status(500).json({
+      error: e.message
+    })
   }
+}
 
   if (req.method === "POST") {
     try {
