@@ -160,7 +160,8 @@ async function renderSnippets() {
 
   const data = await getSnippets()
 
-  const snippets = data.filter(item => {
+  const snippets = data
+  .filter(item => {
     const matchSearch =
       item.title.toLowerCase().includes(keyword) ||
       item.lang.toLowerCase().includes(keyword) ||
@@ -171,6 +172,12 @@ async function renderSnippets() {
       item.category === activeCategory
 
     return matchSearch && matchCat
+  })
+  .sort((a, b) => {
+    return a.title.localeCompare(b.title, "en", {
+      sensitivity: "base",
+      numeric: true
+    })
   })
 
   if (!snippets.length) {
