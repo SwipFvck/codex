@@ -579,12 +579,7 @@ function formatLang(lang) {
 }
 
 async function seedData() {
-  const snippets = await getSnippets()
-
-  if (snippets.length) return
-
-  await saveSnippets([
-  ])
+  return
 }
 
 function showToast(message) {
