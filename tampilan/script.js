@@ -12,19 +12,27 @@ const adminPanel = document.getElementById("adminPanel")
 
 async function getSnippets() {
   try {
-    const res = await fetch("/api/snippets")
+    const res = await fetch(`/api/snippets?t=${Date.now()}`, {
+      cache: "no-store"
+    })
+
     const data = await res.json()
+
+    if (!Array.isArray(data)) {
+      console.log("GET bukan array:", data)
+      return []
+    }
 
     snippetsCache = data
     return data
-
-  } catch {
+  } catch (err) {
+    console.log("GET snippets gagal:", err)
     return []
   }
 }
 
 async function saveSnippets(data) {
-  await fetch("/api/snippets", {
+  const res = await fetch("/api/snippets", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -32,7 +40,17 @@ async function saveSnippets(data) {
     body: JSON.stringify(data)
   })
 
+  const result = await res.json().catch(() => null)
+
+  console.log("SAVE RESPONSE:", result)
+
+  if (!res.ok || result?.status === false) {
+    showToast(result?.message || "Gagal save snippet")
+    return false
+  }
+
   snippetsCache = data
+  return true
 }
 
 async function openFromUrl() {
@@ -446,13 +464,15 @@ async function saveSnippet() {
     })
   }
 
-  await saveSnippets(snippets)
+  const saved = await saveSnippets(snippets)
 
-  resetForm()
+if (!saved) return
 
-  await renderSnippets()
+resetForm()
 
-  showToast("Code saved successfully")
+await renderSnippets()
+
+showToast("Code saved successfully")
 }
 
 async function editSnippet(id) {
