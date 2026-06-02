@@ -198,24 +198,29 @@ async function renderSnippets() {
       </div>
 
       <div class="snippet-info">
-        <h3>${escapeHTML(item.title)}</h3>
+  <h3>${escapeHTML(item.title)}</h3>
 
-        <div class="tags">
-          <span class="lang">
-            ${escapeHTML(formatLang(item.lang))}
-          </span>
+  <div class="tags">
+    <span class="lang">
+      ${escapeHTML(formatLang(item.lang))}
+    </span>
 
-          <span class="cat-text">
-            ${escapeHTML(item.category)}
-          </span>
+    <span class="cat-text">
+      ${escapeHTML(item.category)}
+    </span>
 
-          ${item.password ? `
-            <span class="locked">
-              <img src="/tampilan/icon/lock.png">
-            </span>
-          ` : ""}
-        </div>
-      </div>
+    ${item.password ? `
+      <span class="locked">
+        <img src="/tampilan/icon/lock.png">
+      </span>
+    ` : ""}
+  </div>
+
+  <div class="snippet-meta">
+    <span>By ${escapeHTML(item.author || "Unknown")}</span>
+    <span>${escapeHTML(item.createdAt || "-")}</span>
+  </div>
+</div>
 
       <span class="material-icons arrow">
         arrow_forward
@@ -467,7 +472,8 @@ async function saveSnippet() {
       lang,
       category,
       password,
-      content
+      content,
+      createdAt: new Date().toLocaleString("id-ID")
     })
   }
 
