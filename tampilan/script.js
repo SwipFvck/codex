@@ -36,7 +36,6 @@ function renderCategories() {
   const menu = document.querySelectorAll(".side-menu")[1]
 
   const categories = [
-    "All",
     ...new Set(
       snippetsCache
         .map(v => v.category)
@@ -50,17 +49,26 @@ function renderCategories() {
 
   menu.innerHTML = `
     <p>CATEGORIES</p>
-    ${categories.map(cat => `
-      <button
-        class="cat ${activeCategory === cat ? "active" : ""}"
-        onclick="setCategory('${cat.replace(/'/g, "\\'")}')"
-      >
-        <span class="material-icons">
-          ${cat === "All" ? "grid_view" : "folder"}
-        </span>
-        ${escapeHTML(cat)}
-      </button>
-    `).join("")}
+
+    <button
+      class="cat ${activeCategory === "All" ? "active" : ""}"
+      onclick="setCategory('All')"
+    >
+      <span class="material-icons">grid_view</span>
+      All
+    </button>
+
+    ${categories
+      .filter(cat => cat !== "All")
+      .map(cat => `
+        <button
+          class="cat ${activeCategory === cat ? "active" : ""}"
+          onclick="setCategory('${cat.replace(/'/g, "\\'")}')"
+        >
+          <span class="material-icons">folder</span>
+          ${escapeHTML(cat)}
+        </button>
+      `).join("")}
   `
 }
 
