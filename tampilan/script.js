@@ -459,7 +459,8 @@ async function saveSnippet() {
             lang,
             category,
             password,
-            content
+            content,
+            createdAt: new Date().toLocaleString("id-ID")
           }
         : item
     )
@@ -480,25 +481,18 @@ async function saveSnippet() {
   const saved = await saveSnippets(snippets)
 
 if (!saved) return
-
 resetForm()
-
 await renderSnippets()
-
 showToast("Code saved successfully")
 }
 
 async function editSnippet(id) {
   const snippets = await getSnippets()
-
   const item = snippets.find(x => x.id === id)
-
   if (!item) return
 
   await goHome()
-
   document.getElementById("formTitle").innerText = "Edit Code"
-
   document.getElementById("editId").value = item.id
   document.getElementById("codeTitle").value = item.title
   document.getElementById("codeAuthor").value = item.author || "Swiper Fvck"
@@ -520,15 +514,12 @@ async function deleteSnippet(id) {
     async () => {
 
       const snippets = await getSnippets()
-
       const data = snippets.filter(
         item => item.id !== id
       )
 
       await saveSnippets(data)
-
       await goHome()
-
       showToast("Code deleted successfully")
     }
   )
@@ -536,54 +527,38 @@ async function deleteSnippet(id) {
 
 function resetForm() {
   document.getElementById("formTitle").innerText = "Add Code"
-
   document.getElementById("editId").value = ""
-
   document.getElementById("codeTitle").value = ""
-
   document.getElementById("codeAuthor").value = "Swiper Fvck"
-
   document.getElementById("codeLang").value = "javascript"
-
   document.getElementById("codeCategory").value = "All"
-
   document.getElementById("codePassword").value = ""
-
   document.getElementById("codeContent").value = ""
 }
 
 async function copyCode(id) {
   const snippets = await getSnippets()
-
   const item = snippets.find(x => x.id === id)
-
   if (!item) return
 
   navigator.clipboard.writeText(item.content)
-
   showToast("Code successfully copied")
 }
 
 async function downloadCode(id) {
   const snippets = await getSnippets()
-
   const item = snippets.find(x => x.id === id)
-
   if (!item) return
-
   const blob = new Blob(
     [item.content],
     { type: "text/plain" }
   )
 
   const url = URL.createObjectURL(blob)
-
   const a = document.createElement("a")
-
   a.href = url
   a.download = item.title
   a.click()
-
   URL.revokeObjectURL(url)
 }
 
@@ -617,13 +592,9 @@ async function seedData() {
 
 function showToast(message) {
   const toast = document.getElementById("toast")
-
   toast.innerText = message
-
   toast.classList.add("show")
-
   clearTimeout(window.toastTimeout)
-
   window.toastTimeout = setTimeout(() => {
     toast.classList.remove("show")
   }, 2500)
@@ -631,9 +602,7 @@ function showToast(message) {
 
 function showConfirm(title, message, callback) {
   document.getElementById("confirmTitle").innerText = title
-
   document.getElementById("confirmMessage").innerText = message
-
   document
     .getElementById("confirmModal")
     .classList.remove("hidden")
@@ -662,10 +631,7 @@ document
 
 ;(async () => {
   await seedData()
-
   checkAdmin()
-
   await renderSnippets()
-
   await openFromUrl()
 })()
