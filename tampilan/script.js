@@ -24,11 +24,44 @@ async function getSnippets() {
     }
 
     snippetsCache = data
+    renderCategories()
     return data
   } catch (err) {
     console.log("GET snippets gagal:", err)
     return []
   }
+}
+
+function renderCategories() {
+  const menu = document.querySelectorAll(".side-menu")[1]
+
+  const categories = [
+    "All",
+    ...new Set(
+      snippetsCache
+        .map(v => v.category)
+        .filter(Boolean)
+    )
+  ].sort((a, b) =>
+    a.localeCompare(b, "id", {
+      sensitivity: "base"
+    })
+  )
+
+  menu.innerHTML = `
+    <p>CATEGORIES</p>
+    ${categories.map(cat => `
+      <button
+        class="cat ${activeCategory === cat ? "active" : ""}"
+        onclick="setCategory('${cat.replace(/'/g, "\\'")}')"
+      >
+        <span class="material-icons">
+          ${cat === "All" ? "grid_view" : "folder"}
+        </span>
+        ${escapeHTML(cat)}
+      </button>
+    `).join("")}
+  `
 }
 
 async function saveSnippets(data) {
