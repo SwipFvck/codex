@@ -5,6 +5,11 @@ let pendingSnippetId = null
 let confirmCallback = null
 let snippetsCache = []
 
+const homePage = document.getElementById("homePage")
+const detailPage = document.getElementById("detailPage")
+const snippetList = document.getElementById("snippetList")
+const adminPanel = document.getElementById("adminPanel")
+
 function showLoading() {
   document.getElementById("loading")?.classList.remove("hidden")
 }
@@ -24,10 +29,20 @@ function getItemCategories(item) {
     .filter(Boolean)
 }
 
-const homePage = document.getElementById("homePage")
-const detailPage = document.getElementById("detailPage")
-const snippetList = document.getElementById("snippetList")
-const adminPanel = document.getElementById("adminPanel")
+function formatDate(value) {
+  if (!value) return "-"
+
+  if (typeof value === "number") {
+    return new Date(value).toLocaleString("id-ID")
+  }
+
+  const date = new Date(value)
+  if (!isNaN(date.getTime())) {
+    return date.toLocaleString("id-ID")
+  }
+
+  return String(value)
+}
 
 async function getSnippets() {
   try {
@@ -56,9 +71,7 @@ function renderCategories() {
 
   const categories = [
     ...new Set(
-      snippetsCache.flatMap(v =>
-        getItemCategories(v)
-      )
+      snippetsCache.flatMap(v => getItemCategories(v))
     )
   ].sort((a, b) =>
     a.localeCompare(b, "id", {
@@ -110,6 +123,7 @@ async function saveSnippets(data) {
   }
 
   snippetsCache = data
+  renderCategories()
   return true
 }
 
@@ -125,7 +139,7 @@ async function openFromUrl() {
 
   const item = snippets.find(x =>
     slugify(x.title) === slug ||
-    slugify(x.title.replace(/\.[a-z0-9]+$/i, "")) === slug
+    slugify(String(x.title || "").replace(/\.[a-z0-9]+$/i, "")) === slug
   )
 
   if (!item) {
@@ -167,12 +181,10 @@ async function loginAdmin() {
   }
 
   sessionStorage.setItem("admin_login", "true")
-
   document.getElementById("adminPass").value = ""
 
   closeLogin()
   checkAdmin()
-
   await renderSnippets()
 }
 
@@ -180,11 +192,13 @@ async function logoutAdmin() {
   sessionStorage.removeItem("admin_login")
 
   checkAdmin()
-
   await renderSnippets()
 }
 
 function checkAdmin() {
+  const loginBtn = document.getElementById("loginBtn")
+  const logoutBtn = document.getElementById("logoutBtn")
+
   if (isAdmin()) {
     adminPanel.classList.remove("hidden")
     loginBtn.classList.add("hidden")
@@ -208,124 +222,127 @@ async function setCategory(cat) {
   })
 
   closeSidebar()
-
   await renderSnippets()
 }
 
 async function renderSnippets() {
-  const keyword = document
-    .getElementById("searchInput")
-    .value
-    .toLowerCase()
+  showLoading()
 
-  const data = await getSnippets()
+  try {
+    const keyword = document
+      .getElementById("searchInput")
+      .value
+      .toLowerCase()
 
-  const snippets = data
-  .filter(item => {
-    const matchSearch =
-      item.title.toLowerCase().includes(keyword) ||
-      item.lang.toLowerCase().includes(keyword) ||
-      item.category.toLowerCase().includes(keyword)
+    const data = await getSnippets()
 
-    const matchCat =
-      activeCategory === "All" ||
-      item.category === activeCategory
+    const snippets = data
+      .filter(item => {
+        const cats = getItemCategories(item)
 
-    return matchSearch && matchCat
-  })
-  .sort((a, b) => {
-    return a.title.localeCompare(b.title, "en", {
-      sensitivity: "base",
-      numeric: true
-    })
-  })
+        const matchSearch =
+          String(item.title || "").toLowerCase().includes(keyword) ||
+          String(item.lang || "").toLowerCase().includes(keyword) ||
+          cats.join(" ").toLowerCase().includes(keyword) ||
+          String(item.author || "").toLowerCase().includes(keyword)
 
-  if (!snippets.length) {
-    snippetList.innerHTML = `
-      <div class="empty">
-        <span class="material-icons">search_off</span>
-        <p>Snippet not found.</p>
-      </div>
-    `
-    return
+        const matchCat =
+          activeCategory === "All" ||
+          cats.includes(activeCategory)
+
+        return matchSearch && matchCat
+      })
+      .sort((a, b) =>
+        String(a.title || "").localeCompare(String(b.title || ""), "id", {
+          sensitivity: "base",
+          numeric: true
+        })
+      )
+
+    if (!snippets.length) {
+      snippetList.innerHTML = `
+        <div class="empty">
+          <span class="material-icons">search_off</span>
+          <p>Snippet not found.</p>
+        </div>
+      `
+      return
+    }
+
+    snippetList.innerHTML = snippets.map(item => {
+      const cats = getItemCategories(item)
+
+      return `
+        <div class="snippet-item" onclick="openDetail(${item.id})">
+
+          <div class="icon-box">
+            <span class="material-icons">code</span>
+          </div>
+
+          <div class="snippet-info">
+            <h3>${escapeHTML(item.title)}</h3>
+
+            <div class="tags">
+              <span class="lang">
+                ${escapeHTML(formatLang(item.lang || "javascript"))}
+              </span>
+
+              ${cats.map(cat => `
+                <span class="cat-text">${escapeHTML(cat)}</span>
+              `).join("")}
+
+              ${item.password ? `
+                <span class="locked">
+                  <img src="/tampilan/icon/lock.png">
+                </span>
+              ` : ""}
+            </div>
+
+            <div class="snippet-meta">
+              <span>By ${escapeHTML(item.author || "Unknown")}</span>
+              <span>👁 ${item.views || 0}</span>
+              <span>❤️ ${item.likes || 0}</span>
+            </div>
+          </div>
+
+          <span class="material-icons arrow">
+            arrow_forward
+          </span>
+        </div>
+      `
+    }).join("")
+  } finally {
+    hideLoading()
   }
-
-  snippetList.innerHTML = snippets.map(item => `
-    <div class="snippet-item" onclick="openDetail(${item.id})">
-
-      <div class="icon-box">
-        <span class="material-icons">code</span>
-      </div>
-
-      <div class="snippet-info">
-  <h3>${escapeHTML(item.title)}</h3>
-
-  <div class="tags">
-    <span class="lang">
-      ${escapeHTML(formatLang(item.lang))}
-    </span>
-
-    <span class="cat-text">
-      ${escapeHTML(item.category)}
-    </span>
-
-    ${item.password ? `
-      <span class="locked">
-        <img src="/tampilan/icon/lock.png">
-      </span>
-    ` : ""}
-  </div>
-
-  <div class="snippet-meta">
-    <span>By ${escapeHTML(item.author || "Unknown")}</span>
-    <span>${escapeHTML(item.createdAt || "-")}</span>
-  </div>
-</div>
-
-      <span class="material-icons arrow">
-        arrow_forward
-      </span>
-
-    </div>
-  `).join("")
 }
 
 async function openDetail(id, force = false) {
   const snippets = await getSnippets()
-
   const item = snippets.find(x => x.id === id)
 
   if (!item) return
 
-  item.views = (item.views || 0) + 1
-await saveSnippets(snippets)
-
   if (item.password && !force) {
     pendingSnippetId = id
-
-    document
-      .getElementById("passwordModal")
-      .classList.remove("hidden")
-
+    document.getElementById("passwordModal").classList.remove("hidden")
     return
   }
+
+  item.views = Number(item.views || 0) + 1
+  await saveSnippets(snippets)
+
+  const cats = getItemCategories(item)
 
   homePage.classList.add("hidden")
   detailPage.classList.remove("hidden")
 
-  history.pushState(
-    null,
-    "",
-    `/code/${slugify(item.title)}`
-  )
+  history.pushState(null, "", `/code/${slugify(item.title)}`)
 
   detailPage.innerHTML = `
     <div class="detail">
 
       <button class="back-btn" onclick="goHome()">
-        <span class="material-icons">
-          arrow_back
-        </span>
+        <span class="material-icons">arrow_back</span>
         Back
       </button>
 
@@ -339,13 +356,32 @@ await saveSnippets(snippets)
 
         <div>
           Language
-          <b>${escapeHTML(formatLang(item.lang))}</b>
+          <b>${escapeHTML(formatLang(item.lang || "javascript"))}</b>
         </div>
 
         <div>
           Category
-          <b>${escapeHTML(item.category)}</b>
+          <b>${escapeHTML(cats.join(", "))}</b>
         </div>
+
+        <div>
+          Views
+          <b>👁 ${item.views || 0}</b>
+        </div>
+
+        <div>
+          Likes
+          <b>❤️ ${item.likes || 0}</b>
+        </div>
+      </div>
+
+      <div class="form-actions" style="margin-bottom:20px">
+        <button
+          class="admin-action blue"
+          onclick="likeSnippet(${item.id})"
+        >
+          ❤️ Like (${item.likes || 0})
+        </button>
       </div>
 
       ${isAdmin() ? `
@@ -381,26 +417,18 @@ await saveSnippets(snippets)
           <div class="window-actions">
 
             <button onclick="copyCode(${item.id})">
-              <span class="material-icons">
-                content_copy
-              </span>
+              <span class="material-icons">content_copy</span>
             </button>
 
             <button onclick="downloadCode(${item.id})">
-              <span class="material-icons">
-                download
-              </span>
+              <span class="material-icons">download</span>
             </button>
 
           </div>
 
         </div>
 
-        <pre>
-<code class="language-${item.lang}">
-${escapeHTML(item.content)}
-</code>
-        </pre>
+        <pre><code class="language-${escapeHTML(item.lang || "javascript")}">${escapeHTML(item.content)}</code></pre>
 
       </div>
 
@@ -415,28 +443,16 @@ ${escapeHTML(item.content)}
 }
 
 function closePasswordModal() {
-  document
-    .getElementById("passwordModal")
-    .classList.add("hidden")
-
-  document
-    .getElementById("snippetPasswordInput")
-    .value = ""
-
+  document.getElementById("passwordModal").classList.add("hidden")
+  document.getElementById("snippetPasswordInput").value = ""
   pendingSnippetId = null
 }
 
 async function submitSnippetPassword() {
-  const input = document
-    .getElementById("snippetPasswordInput")
-    .value
-
+  const input = document.getElementById("snippetPasswordInput").value
   const snippets = await getSnippets()
 
-  const item = snippets.find(
-    x => x.id === pendingSnippetId
-  )
-
+  const item = snippets.find(x => x.id === pendingSnippetId)
   if (!item) return
 
   if (input !== item.password) {
@@ -444,16 +460,10 @@ async function submitSnippetPassword() {
     return
   }
 
-  document
-    .getElementById("passwordModal")
-    .classList.add("hidden")
-
-  document
-    .getElementById("snippetPasswordInput")
-    .value = ""
+  document.getElementById("passwordModal").classList.add("hidden")
+  document.getElementById("snippetPasswordInput").value = ""
 
   const id = pendingSnippetId
-
   pendingSnippetId = null
 
   await openDetail(id, true)
@@ -466,49 +476,33 @@ async function goHome() {
   history.pushState(null, "", "/code")
 
   closeSidebar()
-
   await renderSnippets()
 }
 
 window.addEventListener("popstate", async () => {
-  await goHome()
+  detailPage.classList.add("hidden")
+  homePage.classList.remove("hidden")
+  closeSidebar()
+  await renderSnippets()
 })
 
 async function saveSnippet() {
   const editId = document.getElementById("editId").value
 
-  const title = document
-    .getElementById("codeTitle")
-    .value
-    .trim()
+  const title = document.getElementById("codeTitle").value.trim()
+  const author = document.getElementById("codeAuthor").value.trim()
+  const lang = document.getElementById("codeLang").value
+  const categoryInput = document.getElementById("codeCategory").value.trim() || "All"
 
-  const author = document
-    .getElementById("codeAuthor")
-    .value
-    .trim()
+  const categories = categoryInput
+    .split(",")
+    .map(v => v.trim())
+    .filter(Boolean)
 
-  const lang = document
-    .getElementById("codeLang")
-    .value
+  const category = categories.join(", ")
 
-  const category =
-document.getElementById("codeCategory")
-.value.trim()
-
-const categories = category
-  .split(",")
-  .map(v => v.trim())
-  .filter(Boolean)
-
-  const password = document
-    .getElementById("codePassword")
-    .value
-    .trim()
-
-  const content = document
-    .getElementById("codeContent")
-    .value
-    .trim()
+  const password = document.getElementById("codePassword").value.trim()
+  const content = document.getElementById("codeContent").value.trim()
 
   if (!title || !content) {
     showToast("Title and code are required fields.")
@@ -526,38 +520,38 @@ const categories = category
             author,
             lang,
             category,
-            password,
             categories,
-            views: item.views || 0,
-            likes: item.likes || 0,
-            createdAt: new Date().toLocaleString("id-ID")
+            password,
+            content,
+            views: Number(item.views || 0),
+            likes: Number(item.likes || 0),
+            updatedAt: Date.now()
           }
         : item
     )
-
   } else {
     snippets.unshift({
-  id: Date.now(),
-  title,
-  author,
-  lang,
-  category,
-  categories,
-  password,
-  content,
-  views: 0,
-  likes: 0,
-  createdAt: Date.now()
-})
+      id: Date.now(),
+      title,
+      author,
+      lang,
+      category,
+      categories,
+      password,
+      content,
+      views: 0,
+      likes: 0,
+      createdAt: Date.now()
     })
   }
 
   const saved = await saveSnippets(snippets)
 
-if (!saved) return
-resetForm()
-await renderSnippets()
-showToast("Code saved successfully")
+  if (!saved) return
+
+  resetForm()
+  await renderSnippets()
+  showToast("Code saved successfully")
 }
 
 async function editSnippet(id) {
@@ -566,12 +560,13 @@ async function editSnippet(id) {
   if (!item) return
 
   await goHome()
+
   document.getElementById("formTitle").innerText = "Edit Code"
   document.getElementById("editId").value = item.id
   document.getElementById("codeTitle").value = item.title
   document.getElementById("codeAuthor").value = item.author || "Swiper Fvck"
-  document.getElementById("codeLang").value = item.lang
-  document.getElementById("codeCategory").value = item.category
+  document.getElementById("codeLang").value = item.lang || "javascript"
+  document.getElementById("codeCategory").value = getItemCategories(item).join(", ")
   document.getElementById("codePassword").value = item.password || ""
   document.getElementById("codeContent").value = item.content
 
@@ -586,11 +581,8 @@ async function deleteSnippet(id) {
     "Delete Code",
     "Are you sure you want to delete this snippet?",
     async () => {
-
       const snippets = await getSnippets()
-      const data = snippets.filter(
-        item => item.id !== id
-      )
+      const data = snippets.filter(item => item.id !== id)
 
       await saveSnippets(data)
       await goHome()
@@ -623,73 +615,19 @@ async function downloadCode(id) {
   const snippets = await getSnippets()
   const item = snippets.find(x => x.id === id)
   if (!item) return
-  const blob = new Blob(
-    [item.content],
-    { type: "text/plain" }
-  )
+
+  const blob = new Blob([item.content], {
+    type: "text/plain"
+  })
 
   const url = URL.createObjectURL(blob)
   const a = document.createElement("a")
+
   a.href = url
   a.download = item.title
   a.click()
+
   URL.revokeObjectURL(url)
-}
-
-function escapeHTML(text) {
-  return String(text)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;")
-}
-
-function slugify(text) {
-  return text
-    .toLowerCase()
-    .replace(/\.[a-z0-9]+$/i, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-}
-
-function formatLang(lang) {
-  if (lang === "javascript") return "Javascript"
-  if (lang === "bash") return "Shell"
-
-  return lang.charAt(0).toUpperCase() + lang.slice(1)
-}
-
-async function seedData() {
-  return
-}
-
-function showToast(message) {
-  const toast = document.getElementById("toast")
-  toast.innerText = message
-  toast.classList.add("show")
-  clearTimeout(window.toastTimeout)
-  window.toastTimeout = setTimeout(() => {
-    toast.classList.remove("show")
-  }, 2500)
-}
-
-function showConfirm(title, message, callback) {
-  document.getElementById("confirmTitle").innerText = title
-  document.getElementById("confirmMessage").innerText = message
-  document
-    .getElementById("confirmModal")
-    .classList.remove("hidden")
-
-  confirmCallback = callback
-}
-
-function closeConfirm() {
-  document
-    .getElementById("confirmModal")
-    .classList.add("hidden")
-
-  confirmCallback = null
 }
 
 async function likeSnippet(id) {
@@ -705,21 +643,71 @@ async function likeSnippet(id) {
 
   if (!item) return
 
-  item.likes = (item.likes || 0) + 1
-
+  item.likes = Number(item.likes || 0) + 1
   localStorage.setItem(likedKey, "true")
 
   await saveSnippets(snippets)
 
   showToast("Liked ❤️")
-
   await openDetail(id, true)
 }
 
-document
-  .getElementById("confirmYes")
-  .onclick = async () => {
+function escapeHTML(text) {
+  return String(text)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;")
+}
 
+function slugify(text) {
+  return String(text)
+    .toLowerCase()
+    .replace(/\.[a-z0-9]+$/i, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+}
+
+function formatLang(lang) {
+  lang = String(lang || "javascript")
+
+  if (lang === "javascript") return "Javascript"
+  if (lang === "bash") return "Shell"
+
+  return lang.charAt(0).toUpperCase() + lang.slice(1)
+}
+
+async function seedData() {
+  return
+}
+
+function showToast(message) {
+  const toast = document.getElementById("toast")
+  toast.innerText = message
+  toast.classList.add("show")
+
+  clearTimeout(window.toastTimeout)
+
+  window.toastTimeout = setTimeout(() => {
+    toast.classList.remove("show")
+  }, 2500)
+}
+
+function showConfirm(title, message, callback) {
+  document.getElementById("confirmTitle").innerText = title
+  document.getElementById("confirmMessage").innerText = message
+  document.getElementById("confirmModal").classList.remove("hidden")
+
+  confirmCallback = callback
+}
+
+function closeConfirm() {
+  document.getElementById("confirmModal").classList.add("hidden")
+  confirmCallback = null
+}
+
+document.getElementById("confirmYes").onclick = async () => {
   if (confirmCallback) {
     await confirmCallback()
   }
