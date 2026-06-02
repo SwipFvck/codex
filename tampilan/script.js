@@ -300,6 +300,7 @@ async function renderSnippets() {
 
             <div class="snippet-meta">
               <span>By ${escapeHTML(item.author || "Unknown")}</span>
+              <span>${escapeHTML(item.createdAt || "-")}</span>
               <span>👁 ${item.views || 0}</span>
               <span>❤️ ${item.likes || 0}</span>
             </div>
@@ -525,7 +526,7 @@ async function saveSnippet() {
             content,
             views: Number(item.views || 0),
             likes: Number(item.likes || 0),
-            updatedAt: Date.now()
+            updatedAt: new Date().toLocaleString("id-ID")
           }
         : item
     )
@@ -541,7 +542,7 @@ async function saveSnippet() {
       content,
       views: 0,
       likes: 0,
-      createdAt: Date.now()
+      createdAt: new Date().toLocaleString("id-ID")
     })
   }
 
