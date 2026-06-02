@@ -5,6 +5,25 @@ let pendingSnippetId = null
 let confirmCallback = null
 let snippetsCache = []
 
+function showLoading() {
+  document.getElementById("loading")?.classList.remove("hidden")
+}
+
+function hideLoading() {
+  document.getElementById("loading")?.classList.add("hidden")
+}
+
+function getItemCategories(item) {
+  if (Array.isArray(item.categories) && item.categories.length) {
+    return item.categories
+  }
+
+  return String(item.category || "All")
+    .split(",")
+    .map(v => v.trim())
+    .filter(Boolean)
+}
+
 const homePage = document.getElementById("homePage")
 const detailPage = document.getElementById("detailPage")
 const snippetList = document.getElementById("snippetList")
@@ -37,9 +56,9 @@ function renderCategories() {
 
   const categories = [
     ...new Set(
-      snippetsCache
-        .map(v => v.category)
-        .filter(Boolean)
+      snippetsCache.flatMap(v =>
+        getItemCategories(v)
+      )
     )
   ].sort((a, b) =>
     a.localeCompare(b, "id", {
@@ -278,6 +297,9 @@ async function openDetail(id, force = false) {
 
   if (!item) return
 
+  item.views = (item.views || 0) + 1
+await saveSnippets(snippets)
+
   if (item.password && !force) {
     pendingSnippetId = id
 
@@ -469,9 +491,14 @@ async function saveSnippet() {
     .getElementById("codeLang")
     .value
 
-  const category = document
-    .getElementById("codeCategory")
-    .value
+  const category =
+document.getElementById("codeCategory")
+.value.trim()
+
+const categories = category
+  .split(",")
+  .map(v => v.trim())
+  .filter(Boolean)
 
   const password = document
     .getElementById("codePassword")
@@ -500,7 +527,9 @@ async function saveSnippet() {
             lang,
             category,
             password,
-            content,
+            categories,
+            views: item.views || 0,
+            likes: item.likes || 0,
             createdAt: new Date().toLocaleString("id-ID")
           }
         : item
@@ -508,14 +537,18 @@ async function saveSnippet() {
 
   } else {
     snippets.unshift({
-      id: Date.now(),
-      title,
-      author,
-      lang,
-      category,
-      password,
-      content,
-      createdAt: new Date().toLocaleString("id-ID")
+  id: Date.now(),
+  title,
+  author,
+  lang,
+  category,
+  categories,
+  password,
+  content,
+  views: 0,
+  likes: 0,
+  createdAt: Date.now()
+})
     })
   }
 
@@ -657,6 +690,30 @@ function closeConfirm() {
     .classList.add("hidden")
 
   confirmCallback = null
+}
+
+async function likeSnippet(id) {
+  const likedKey = `liked_${id}`
+
+  if (localStorage.getItem(likedKey)) {
+    showToast("You already liked this snippet")
+    return
+  }
+
+  const snippets = await getSnippets()
+  const item = snippets.find(x => x.id === id)
+
+  if (!item) return
+
+  item.likes = (item.likes || 0) + 1
+
+  localStorage.setItem(likedKey, "true")
+
+  await saveSnippets(snippets)
+
+  showToast("Liked ❤️")
+
+  await openDetail(id, true)
 }
 
 document

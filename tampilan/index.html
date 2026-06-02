@@ -97,18 +97,8 @@
                         <option value="bash">Shell</option>
                     </select>
 
-                    <select id="codeCategory">
-    <option value="All">All</option>
-    <option value="Downloader">Downloader</option>
-    <option value="Search">Search</option>
-    <option value="Stalker">Stalker</option>
-    <option value="AI">AI</option>
-    <option value="Tools">Tools</option>
-    <option value="Uploader">Uploader</option>
-    <option value="Converter">Converter</option>
-    <option value="Canvas">Canvas</option>
-    <option value="Maker">Maker</option>
-</select>
+                    <input
+  id="codeCategory" value="All" placeholder="Category, contoh: Downloader, Search, AI"/>
 
                     <input
                         id="codePassword"
@@ -174,6 +164,10 @@
                 </div>
             </div>
         </div>
+
+<div class="loading hidden" id="loading">
+  <div class="loader"></div>
+</div>
 
 <div class="toast" id="toast"></div>
 <div class="modal hidden" id="confirmModal">
